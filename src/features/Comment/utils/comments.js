@@ -1,5 +1,4 @@
 import { isModerator } from 'features/User/utils';
-import axios from 'axios';
 
 export const mapCommentsBasedOnId = (data) => {
   const commentsList = {};

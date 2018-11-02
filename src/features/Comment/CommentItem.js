@@ -3,8 +3,9 @@ import React, { PureComponent } from 'react';
 import { createStructuredSelector } from 'reselect';
 import { connect } from 'react-redux';
 import Body from 'components/Body';
-import { List, Avatar } from 'antd';
+import { List, Avatar, Icon } from 'antd';
 import { sortCommentsFromSteem } from 'utils/helpers/stateHelpers';
+import { formatNumber } from 'utils/helpers/steemitHelpers';
 import ContentPayoutAndVotes from 'components/ContentPayoutAndVotes';
 import Author from 'components/Author';
 import CommentReplyForm from './CommentReplyForm';
@@ -15,6 +16,8 @@ import { isEditable } from 'features/Post/utils';
 import { isAdmin, isModerator, isInfluencer } from 'features/User/utils';
 import { decreaseCommentcount } from 'features/Post/reducer';
 import { shouldCommentVisible } from 'features/Comment/utils/comments';
+import { updateComment } from 'features/Comment/actions/updateComment';
+import api from 'utils/api';
 
 class CommentItem extends PureComponent {
   static propTypes = {
@@ -31,6 +34,9 @@ class CommentItem extends PureComponent {
     this.state = {
       showReplyForm: false,
       showEditForm: false,
+      this_score: null,
+      this_upvoted: null,
+      this_downvoted: null
     };
   }
 
@@ -60,6 +66,24 @@ class CommentItem extends PureComponent {
     this.setState({ showEditForm: !this.state.showEditForm });
   };
 
+  onClickVote = async (comment, type = 'upvote') => {
+    const { me } = this.props;
+    const res = await api.post(`/comments/${type}.json`, { key: comment.id }, true);
+
+    const { score, upvotes, downvotes } = res;
+    const newState = {
+      this_score: score,
+      this_upvoted: upvotes[me] !== undefined,
+      this_downvoted: downvotes[me] !== undefined
+    }
+    //this.setState(newState);
+    Object.entries(newState).map(([key, value]) => {
+      console.log(`${key.split('_')[1]}`, value, "===============");
+      this.props.updateComment(comment.id, `${key.split('_')[1]}`, value);
+    })
+    console.log(this.props.comment);
+  }
+
   render() {
     const { post, comment, commentsChild, commentsData, me } = this.props;
     const { showReplyForm, showEditForm } = this.state;
@@ -84,7 +108,13 @@ class CommentItem extends PureComponent {
               }
               <span className="separator">&middot;</span>
               <span className="date">{toTimeAgo(comment.created)}</span>
-              <span>{comment.score}</span>
+              <a className={(comment.upvoted) ? "primary" : "hover-link"} onClick={() => this.onClickVote(comment, 'upvote')}>
+                <Icon type="arrow-up" theme="outlined"/>
+              </a>
+              <span key={`${comment.id}-${comment.score}`}>{formatNumber(comment.score)}</span>
+              <a className={(comment.downvoted) ? "primary" : "hover-link"} onClick={() => this.onClickVote(comment, 'downvote')}>
+                <Icon type="arrow-down" theme="outlined" />
+              </a>
             </div>
           }
           description={
@@ -139,6 +169,7 @@ const mapStateToProps = () => createStructuredSelector({
 
 const mapDispatchToProps = (dispatch, props) => ({
   decreaseCommentcount: () => dispatch(decreaseCommentcount(props.post)),
+  updateComment: (commentKey, field, value) => dispatch(updateComment(commentKey, field, value)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(CommentItem);

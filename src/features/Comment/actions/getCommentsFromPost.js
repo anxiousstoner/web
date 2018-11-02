@@ -64,15 +64,17 @@ function* getCommentsFromPost({ category, author, permlink }) {
     const posts = yield select(selectPosts());
 
     const comment_ids = Object.keys(state.content).map((commentKey) => state.content[commentKey].id).join(',');
-    const res = yield api.get(`/comments/score_table.json`, {keys: `[${comment_ids}]`});
-    const scoreTable = res.score_table;
+    const res = yield api.get(`/comments/score_table.json`, {keys: `[${comment_ids}]`}, true);
+    const { score_table, upvotes_table, downvotes_table } = res;
     // Update payout_value
     const commentsData = mapCommentsBasedOnId(state.content);
 
     for (const content of Object.values(commentsData)) {
       if (content) {
         content.payout_value = calculateContentPayout(content); // Sync with local format
-        content.score = scoreTable[content.id];
+        content.score = score_table[content.id];
+        content.upvoted = upvotes_table[content.id];
+        content.downvoted = downvotes_table[content.id];
       }
     }
 
