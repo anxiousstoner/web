@@ -36,7 +36,6 @@ class CommentItem extends PureComponent {
 
   componentDidMount() {
     const { post, comment } = this.props;
-
     // NOTE:
     // This will show an incorrect count when the user is the owner or a moderator
     // Hard to fix because getMe() and getCommentsFromPost() - are running asynchronously
@@ -85,6 +84,7 @@ class CommentItem extends PureComponent {
               }
               <span className="separator">&middot;</span>
               <span className="date">{toTimeAgo(comment.created)}</span>
+              <span>{comment.score}</span>
             </div>
           }
           description={
@@ -117,7 +117,7 @@ class CommentItem extends PureComponent {
               {commentsChild[comment.id] && sortCommentsFromSteem(
                 commentsChild[comment.id],
                 commentsData,
-                'trending'
+                'score'
               ).map(commentId =>
                 <CommentItem
                   {...this.props}
