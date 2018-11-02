@@ -8,6 +8,7 @@ import { selectPosts } from 'features/Post/selectors';
 import { hasUpdated } from 'features/Post/utils';
 import { postRefreshBegin, postRefreshSuccess } from 'features/Post/actions/refreshPost';
 import { calculateContentPayout } from 'utils/helpers/steemitHelpers';
+import api from 'utils/api';
 
 /*--------- CONSTANTS ---------*/
 const GET_COMMENTS_FROM_POST_BEGIN = 'GET_COMMENTS_FROM_POST_BEGIN';
@@ -41,7 +42,7 @@ export function getCommentsFromPostReducer(state, action) {
         commentsFromPost: {
           [action.postKey]: {$auto: {
             // SORTS COMMENTS HERE TO AVOID JUMPS WHEN VOTING
-            list: { $set: sortCommentsFromSteem(getRootCommentsList(action.state), mapCommentsBasedOnId(action.state.content), 'trending') },
+            list: { $set: sortCommentsFromSteem(getRootCommentsList(action.state), mapCommentsBasedOnId(action.state.content), 'score') },
           }},
         }
       });
@@ -62,11 +63,20 @@ function* getCommentsFromPost({ category, author, permlink }) {
     const state = yield steem.api.getStateAsync(`/${category}/@${author}/${permlink}`);
     const posts = yield select(selectPosts());
 
+    const active_voters = {}
+    Object.keys(state.content).map((commentKey) => {
+      const comment = state.content[commentKey];
+      active_voters[`${comment.id}`] = comment.active_votes.map((voter) => { return voter.voter })
+      return true;
+    });
+    const res = yield api.post('/comments/scores.json', { active_voters: JSON.stringify(active_voters) });
+    const { score_table } = res;
     // Update payout_value
     const commentsData = mapCommentsBasedOnId(state.content);
     for (const content of Object.values(commentsData)) {
       if (content) {
         content.payout_value = calculateContentPayout(content); // Sync with local format
+        content.scores = score_table[content.id];
       }
     }
 

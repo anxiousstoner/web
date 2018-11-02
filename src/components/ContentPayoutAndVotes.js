@@ -15,7 +15,7 @@ export default class ContentPayoutAndVotes extends PureComponent {
   };
 
   render() {
-    const { content, type} = this.props;
+    const { content, type } = this.props;
 
     let activeVotes = content.active_votes || [];
     if (activeVotes.length === 0) {
@@ -24,7 +24,7 @@ export default class ContentPayoutAndVotes extends PureComponent {
           <span className="fake-link hover-link">
             {content.active_votes === undefined ?
               <Icon type="loading" />
-            :
+              :
               '0'
             }
             &nbsp;votes
@@ -78,6 +78,21 @@ export default class ContentPayoutAndVotes extends PureComponent {
       );
     }
 
+    let userScoresTooltipMsg = '';
+    if (type === 'comment') {
+      const userScoreTable = content.scores.user_scores;
+      const activeVotes = content.active_votes || [];
+
+      const lastActiveVotes = activeVotes.sort((a, b) => userScoreTable[a.voter] - userScoreTable[b.voter]).reverse().slice(0, NB_SHOW_VOTES);
+      userScoresTooltipMsg = lastActiveVotes.map(vote => (
+        <div className="voting-list" key={vote.voter}>
+          <Author name={vote.voter} />
+          <span className="weight">({vote.percent / 100}%)</span>
+          <span className="value">+{formatNumber(userScoreTable[vote.voter])}</span>
+        </div>
+      ));
+    }
+
     if (type === 'post') {
       return (
         <span className="vote-count">
@@ -93,8 +108,12 @@ export default class ContentPayoutAndVotes extends PureComponent {
     } else { // comment
       return (
         <span className="vote-count">
+          <Popover content={userScoresTooltipMsg} placement="bottom">
+            <span className="payout fake-link">{formatNumber(content.scores.total)}</span>
+          </Popover>
+          <span className="separator">|</span>
           <Popover content={lastVotesTooltipMsg} placement="bottom">
-            <span className="fake-link hover-link">{activeVotes.length} votes</span>
+            <span className="fake-link hover-link">{formatAmount(content.payout_value)}</span>
           </Popover>
         </span>
       );

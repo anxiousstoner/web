@@ -36,8 +36,8 @@ class VoteButton extends PureComponent {
   loadVoteWeight = () => {
     const voteString = localStorage.getItem(`vote-weight-${this.props.type}`);
     const voteWeight = parseInt(voteString, 10)
-    if(voteString && !!voteWeight) {
-      this.setState({voteWeight: voteWeight});
+    if (voteString && !!voteWeight) {
+      this.setState({ voteWeight: voteWeight });
     }
   };
 
@@ -50,7 +50,7 @@ class VoteButton extends PureComponent {
           &nbsp;or&nbsp;
           <a
             href="/sign-up"
-            onClick={() => window.gtag('event', 'signup_clicked', { 'event_category' : 'signup', 'event_label' : 'Voting Notification' })}
+            onClick={() => window.gtag('event', 'signup_clicked', { 'event_category': 'signup', 'event_label': 'Voting Notification' })}
           >
             Sign Up
           </a> for participating in voting.
@@ -91,7 +91,7 @@ class VoteButton extends PureComponent {
     const { myAccount, isConnected, post, layout } = this.props;
     const { voteWeight, sliderOpened } = this.state;
     const postUpvoted = hasVoted(post, myAccount.name);
-    const deleteConfirmation = <div>Are you sure unvote this post?<br/>Your voting power won&quot;t recharge even if you unvote.</div>
+    const deleteConfirmation = <div>Are you sure unvote this post?<br />Your voting power won&quot;t recharge even if you unvote.</div>
 
     const content = isConnected ? (
       <div className="vote-box">
@@ -106,7 +106,7 @@ class VoteButton extends PureComponent {
           {voteWeight}%
           {layout === 'comment' ?
             ` (${formatAmount(this.votingValueCalculator(voteWeight))})`
-          :
+            :
             ` (+${formatNumber(voteWeight * myAccount.user_score * 0.01 * myAccount.boost_score)}, ${formatAmount(this.votingValueCalculator(voteWeight))})`
           }
         </div>
@@ -137,7 +137,7 @@ class VoteButton extends PureComponent {
                 loading={post.isUpdating}
               />
             </Popconfirm>
-          :
+            :
             <Popover
               content={content}
               trigger="click"
@@ -157,7 +157,7 @@ class VoteButton extends PureComponent {
           <div className="payout-value">{formatNumber(post.hunt_score)}</div>
         </div>
       );
-    } else if (layout ==='detail-page') {
+    } else if (layout === 'detail-page') {
       return (
         <div className={`vote-button${postUpvoted ? ' active' : ''}`}>
           {postUpvoted ?
@@ -178,7 +178,7 @@ class VoteButton extends PureComponent {
                 <div className="payout-value">{formatNumber(post.hunt_score)}</div>
               </Button>
             </Popconfirm>
-          :
+            :
             <Popover
               content={content}
               trigger="click"
@@ -219,7 +219,7 @@ class VoteButton extends PureComponent {
                 loading={post.isUpdating}
               />
             </Popconfirm>
-          :
+            :
             <Popover
               content={content}
               trigger="click"
@@ -234,10 +234,10 @@ class VoteButton extends PureComponent {
                 size="small"
                 ghost={true}
                 loading={post.isUpdating}
-              />
+              />&nbsp;
             </Popover>
           }
-          <span className="payout-value">{formatAmount(post.payout_value)}</span>
+          {/* <span className="payout-value">{formatNumber(post.score)}</span> */}
         </div>
       );
     }
