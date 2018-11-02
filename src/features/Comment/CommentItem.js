@@ -78,7 +78,6 @@ class CommentItem extends PureComponent {
     }
     //this.setState(newState);
     Object.entries(newState).map(([key, value]) => {
-      console.log(`${key.split('_')[1]}`, value, "===============");
       this.props.updateComment(comment.id, `${key.split('_')[1]}`, value);
     })
     console.log(this.props.comment);
